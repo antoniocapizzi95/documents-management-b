@@ -5,7 +5,7 @@ This CLI tool is designed to interact with the Document Management API, providin
 ## Prerequisites
 
 - Node.js (version 14 or later)
-- Access to the Document Management API
+- Access to the Document Management API (this project must be running: https://github.com/antoniocapizzi95/documents-management-a)
 
 ## Installation
 
