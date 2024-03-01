@@ -5,6 +5,7 @@ This CLI tool is designed to interact with the Document Management API, providin
 ## Prerequisites
 
 - Node.js (version 14 or later)
+- Docker and Docker Compose
 - Access to the Document Management API (this project must be running: https://github.com/antoniocapizzi95/documents-management-a)
 
 ## Installation
@@ -14,6 +15,7 @@ To install the CLI tool, follow these steps:
 1. Clone the repository and navigate to the CLI tool directory.
 2. Install dependencies: `npm install`.
 3. On project root create a ```.env``` file and copy the contents of the ```.env.sample``` file (already present in the repository).
+4. Execute `docker-compose up` command to run the local database.
 
 ## Usage
 

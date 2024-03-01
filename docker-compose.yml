@@ -1,0 +1,13 @@
+version: '3'
+services:
+  postgres-b:
+    container_name: postgres-b
+    image: postgres:14-alpine
+    ports:
+      - 5433:5432
+    volumes:
+      - ~/apps/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=psw
+      - POSTGRES_USER=user
+      - POSTGRES_DB=db

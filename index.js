@@ -1,18 +1,20 @@
 require('dotenv').config();
-const axios = require('axios');
-const { program } = require('commander');
 
-const apiUrl = process.env.API_URL;
-const username = process.env.USER;
-const password = process.env.PASSWORD
+const { program } = require('commander');
+const DocumentsClient = require('./clients/documents.client');
+const DocumentRepository = require('./repository/document/document.repository');
+
+const client = new DocumentsClient();
+const documentRepository = new DocumentRepository();
 
 async function initializeApp() {
-    const token = await login(username, password)
-    if (!token) {
-        console.log('Impossible to execute the program')
-        return
+    try {
+        client.login()
+    } catch (error) {
+        console.error('Error with login:', error.message);
+        console.error('Impossible to execute the application');
+        return;
     }
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
     program
     .version('0.1.0')
@@ -21,88 +23,58 @@ async function initializeApp() {
     program
     .command('list')
     .description('Retrieve a list of documents')
-    .action(listDocuments);
+    .action(handleListDocuments);
 
     program
     .command('get <id>')
     .description('Retrieve a document by id')
-    .action(getDocument);
+    .action(handleGetDocument);
 
     program
     .command('create <content>')
     .description('Create a new document')
-    .action(createDocument);
+    .action(client.createDocument);
 
     program
     .command('update <id> <content>')
     .description('Update a document')
-    .action(updateDocument);
+    .action(client.updateDocument);
 
     program
     .command('delete <id>')
     .description('Delete a document')
-    .action(deleteDocument);
+    .action(client.deleteDocument);
 
 
     program.parse(process.argv);
 }
 
-initializeApp()
+initializeApp();
 
 //----- declaration part
 
-async function login(username, password) {
-    try {
-        const response = await axios.post(`${apiUrl}/auth/login`, { username, password });
-        return response.data.token;
-    } catch (error) {
-        console.error('Error with login:', error.message);
-        return null;
+async function handleListDocuments() {
+    const response = await client.listDocuments();
+    if (response) {
+        try {
+            for (const doc of response) {
+                await documentRepository.addDocument(doc.id, doc);
+            }
+            console.log('Documents saved on local db!');
+        } catch(error) {
+            console.error('Error during list documents handling:', error.message);
+        }
     }
 }
 
-async function listDocuments() {
-    try {
-        const response = await axios.get(`${apiUrl}/documents`);
-        console.log(response.data);
-    } catch (error) {
-        console.error('Error retrieving documents:', error.message);
+async function handleGetDocument(id) {
+    const response = await client.getDocument(id);
+    if (response) {
+        try {
+            await documentRepository.addDocument(response.id, response);
+            console.log('Document saved on local db!');
+        } catch(error) {
+            console.error('Error during get document handling:', error.message);
+        }
     }
 }
-
-async function getDocument(id) {
-    try {
-        const response = await axios.get(`${apiUrl}/documents/${id}`);
-        console.log(response.data);
-    } catch (error) {
-        console.error('Error retrieving document:', error.message);
-    }
-}
-
-async function createDocument(content) {
-    try {
-        const response = await axios.post(`${apiUrl}/documents`, { content });
-        console.log('Document created:', response.data);
-    } catch (error) {
-        console.error('Error creating document:', error.message);
-    }
-}
-
-async function updateDocument(id, content) {
-    try {
-        const response = await axios.put(`${apiUrl}/documents/${id}`, { content });
-        console.log('Document updated:', response.data);
-    } catch (error) {
-        console.error('Error updating document:', error.message);
-    }
-}
-
-async function deleteDocument(id) {
-    try {
-        await axios.delete(`${apiUrl}/documents/${id}`);
-        console.log('Document deleted successfully');
-    } catch (error) {
-        console.error('Error deleting document:', error.message);
-    }
-}
-
